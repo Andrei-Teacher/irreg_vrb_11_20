@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Викторина: Неправильные глаголы</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Comic Sans MS', 'Arial', sans-serif;
+            background: linear-gradient(135deg, #d1fae5 0%, #fed7aa 50%, #e9d5ff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 650px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(16, 185, 129, 0.2);
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            color: #0f766e;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(15, 118, 110, 0.15);
+        }
+
+        .subtitle {
+            color: #14b8a6;
+            font-size: 1.2em;
+            margin-bottom: 30px;
+        }
+
+        /* Экран выбора режима */
+        .mode-screen {
+            display: block;
+        }
+
+        .mode-title {
+            color: #0f766e;
+            font-size: 1.5em;
+            margin-bottom: 25px;
+        }
+
+        .mode-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+
+        .mode-btn {
+            border: none;
+            padding: 22px;
+            border-radius: 20px;
+            font-size: 1.3em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);
+            box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15);
+        }
+
+        .mode-btn:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+        }
+
+        .mode-btn:active {
+            transform: translateY(0);
+        }
+
+        .mode-btn.mode-v2 {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+        }
+
+        .mode-btn.mode-v3 {
+            background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+        }
+
+        .mode-btn.mode-both {
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+        }
+
+        .mode-btn.mode-translate {
+            background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
+        }
+
+        .mode-btn .mode-emoji {
+            font-size: 1.3em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .mode-btn .mode-desc {
+            display: block;
+            font-size: 0.7em;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        /* Прогресс в виде кружков */
+        .progress-dots {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 30px;
+            padding: 15px 10px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 20px;
+            box-shadow: inset 0 2px 6px rgba(16, 185, 129, 0.15);
+        }
+
+        .dot {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f0fdf4;
+            border: 2.5px solid #a7f3d0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85em;
+            font-weight: bold;
+            color: #6ee7b7;
+            transition: all 0.4s ease;
+        }
+
+        .dot.current {
+            background: #fef3c7;
+            border-color: #f59e0b;
+            color: #b45309;
+            animation: pulse 1.5s infinite;
+            transform: scale(1.1);
+        }
+
+        .dot.correct {
+            background: linear-gradient(135deg, #6ee7b7 0%, #10b981 100%);
+            border-color: #059669;
+            color: white;
+            box-shadow: 0 3px 8px rgba(16, 185, 129, 0.35);
+        }
+
+        .dot.wrong {
+            background: linear-gradient(135deg, #fca5a5 0%, #f87171 100%);
+            border-color: #ef4444;
+            color: white;
+            box-shadow: 0 3px 8px rgba(239, 68, 68, 0.35);
+        }
+
+        @keyframes pulse {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
+            50% { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+        }
+
+        /* Счётчик серии */
+        .streak-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 15px 25px;
+            box-shadow: 0 8px 25px rgba(249, 115, 22, 0.2);
+            text-align: center;
+            z-index: 1000;
+            display: none;
+            border: 2px solid #fed7aa;
+        }
+
+        .streak-counter.active {
+            display: block;
+            animation: slideIn 0.5s ease;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .streak-label {
+            font-size: 0.9em;
+            color: #0f766e;
+            margin-bottom: 5px;
+        }
+
+        .streak-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ea580c;
+            text-shadow: 2px 2px 4px rgba(234, 88, 12, 0.2);
+        }
+
+        .streak-fire {
+            font-size: 1.5em;
+        }
+
+        /* Уведомление о достижении */
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 30px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            text-align: center;
+            z-index: 2000;
+            opacity: 0;
+            transition: all 0.5s ease;
+            border: 3px solid #f59e0b;
+        }
+
+        .achievement-popup.show {
+            transform: translate(-50%, -50%) scale(1);
+            opacity: 1;
+        }
+
+        .achievement-emoji {
+            font-size: 5em;
+            margin-bottom: 20px;
+            animation: bounce 0.8s ease;
+        }
+
+        .achievement-title {
+            font-size: 2em;
+            color: #0f766e;
+            margin-bottom: 10px;
+            font-weight: bold;
+        }
+
+        .achievement-desc {
+            font-size: 1.3em;
+            color: #475569;
+        }
+
+        .question {
+            font-size: 1.5em;
+            color: #134e4a;
+            margin-bottom: 30px;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .question .translation {
+            font-size: 0.7em;
+            color: #14b8a6;
+            font-style: italic;
+        }
+
+        .answers {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        /* Кнопки с тёмным контуром — новая коралловая палитра */
+        .answer-btn {
+            background: linear-gradient(135deg, #fb7185 0%, #f43f5e 100%);
+            color: white;
+            border: 3px solid #9f1239;
+            padding: 18px;
+            border-radius: 15px;
+            font-size: 1.25em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            box-shadow: 0 5px 15px rgba(244, 63, 94, 0.35);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .answer-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(244, 63, 94, 0.5);
+            background: linear-gradient(135deg, #f43f5e 0%, #e11d48 100%);
+            border-color: #881337;
+        }
+
+        .answer-btn:active {
+            transform: translateY(0);
+        }
+
+        .answer-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .feedback {
+            font-size: 2em;
+            margin: 20px 0;
+            min-height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .correct {
+            color: #059669;
+            animation: bounce 0.5s ease;
+        }
+
+        .incorrect {
+            color: #dc2626;
+            animation: shake 0.5s ease;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-10px); }
+            75% { transform: translateX(10px); }
+        }
+
+        .final-screen {
+            display: none;
+        }
+
+        .final-screen h2 {
+            color: #0f766e;
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        .score-block {
+            background: linear-gradient(135deg, #fef3c7 0%, #fed7aa 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: inset 0 2px 6px rgba(249, 115, 22, 0.15);
+        }
+
+        .score-line {
+            font-size: 1.4em;
+            color: #134e4a;
+            margin: 15px 0;
+        }
+
+        .score-line strong {
+            color: #0f766e;
+            font-size: 1.3em;
+        }
+
+        .percent {
+            font-size: 3em;
+            color: #0f766e;
+            margin: 20px 0;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(15, 118, 110, 0.2);
+        }
+
+        /* Достижения в финальном экране */
+        .achievements-block {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            border: 2px solid #fcd34d;
+        }
+
+        .achievements-title {
+            color: #0f766e;
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .achievement-badge {
+            display: inline-block;
+            background: white;
+            border-radius: 15px;
+            padding: 15px 20px;
+            margin: 8px;
+            box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+            border: 2px solid #fde68a;
+        }
+
+        .achievement-badge .badge-emoji {
+            font-size: 2em;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .achievement-badge .badge-text {
+            font-size: 0.9em;
+            color: #475569;
+        }
+
+        /* Разбор ошибок */
+        .mistakes-block {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: left;
+        }
+
+        .mistakes-title {
+            color: #dc2626;
+            font-size: 1.4em;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .mistake-card {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: 0 2px 6px rgba(220, 38, 38, 0.15);
+            border-left: 4px solid #ef4444;
+        }
+
+        .mistake-card:last-child {
+            margin-bottom: 0;
+        }
+
+        .mistake-verb {
+            font-size: 1.3em;
+            color: #134e4a;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .mistake-translation {
+            font-size: 0.9em;
+            color: #14b8a6;
+            font-style: italic;
+            margin-bottom: 8px;
+        }
+
+        .mistake-forms {
+            font-size: 1.05em;
+            color: #475569;
+        }
+
+        .mistake-forms .correct-form {
+            color: #059669;
+            font-weight: bold;
+        }
+
+        .no-mistakes {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+            border: 2px solid #6ee7b7;
+        }
+
+        .no-mistakes-text {
+            font-size: 1.4em;
+            color: #059669;
+            font-weight: bold;
+        }
+
+        .play-again-btn {
+            background: linear-gradient(135deg, #6ee7b7 0%, #34d399 100%);
+            color: white;
+            border: 3px solid #047857;
+            padding: 20px 50px;
+            border-radius: 15px;
+            font-size: 1.5em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            margin-top: 20px;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.15);
+        }
+
+        .play-again-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.55);
+            background: linear-gradient(135deg, #34d399 0%, #10b981 100%);
+            border-color: #065f46;
+        }
+
+        .emoji {
+            font-size: 3em;
+            margin: 20px 0;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Счётчик серии -->
+    <div class="streak-counter" id="streak-counter">
+        <div class="streak-label">Серия правильных ответов</div>
+        <div class="streak-number"><span class="streak-fire">🔥</span> <span id="streak-number">0</span></div>
+    </div>
+
+    <!-- Уведомление о достижении -->
+    <div class="achievement-popup" id="achievement-popup">
+        <div class="achievement-emoji" id="achievement-emoji"></div>
+        <div class="achievement-title" id="achievement-title"></div>
+        <div class="achievement-desc" id="achievement-desc"></div>
+    </div>
+
+    <div class="container">
+        <!-- Экран выбора режима -->
+        <div id="mode-screen" class="mode-screen">
+            <h1>🎓 Irregular Verbs Quiz</h1>
+            <p class="subtitle">Неправильные глаголы • 8 класс</p>
+            
+            <div class="mode-title">Выбери режим игры:</div>
+            
+            <div class="mode-buttons">
+                <button class="mode-btn mode-v2" onclick="startGame('v2')">
+                    <span class="mode-emoji">🍊</span>
+                    Только V2
+                    <span class="mode-desc">15 вопросов • вторая форма глагола</span>
+                </button>
+                
+                <button class="mode-btn mode-v3" onclick="startGame('v3')">
+                    <span class="mode-emoji">🌸</span>
+                    Только V3
+                    <span class="mode-desc">15 вопросов • третья форма глагола</span>
+                </button>
+                
+                <button class="mode-btn mode-both" onclick="startGame('both')">
+                    <span class="mode-emoji">🌿</span>
+                    V2 и V3
+                    <span class="mode-desc">15 вопросов • смешанный режим</span>
+                </button>
+
+                <button class="mode-btn mode-translate" onclick="startGame('translate')">
+                    <span class="mode-emoji">🦋</span>
+                    Перевод → форма
+                    <span class="mode-desc">15 вопросов • дан перевод, выбери форму</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Экран игры -->
+        <div id="quiz-screen" class="hidden">
+            <h1>🎓 Irregular Verbs Quiz</h1>
+            <p class="subtitle" id="current-mode-label"></p>
+            
+            <div class="progress-dots" id="progress-dots"></div>
+
+            <div class="question" id="question"></div>
+
+            <div class="answers" id="answers"></div>
+
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <!-- Экран результатов -->
+        <div class="final-screen" id="final-screen">
+            <div class="emoji" id="final-emoji"></div>
+            <h2>Викторина завершена!</h2>
+            <div class="score-block">
+                <div class="score-line">✅ Верно с первого раза: <strong id="first-try-count"></strong></div>
+                <div class="score-line">📊 Результат:</div>
+                <div class="percent" id="final-percent"></div>
+                <div class="score-line">🔥 Лучшая серия: <strong id="best-streak"></strong></div>
+            </div>
+
+            <!-- Достижения -->
+            <div id="achievements-container"></div>
+            
+            <!-- Разбор ошибок -->
+            <div id="mistakes-container"></div>
+            
+            <button class="play-again-btn" onclick="backToMenu()">🔄 Выбрать другой режим</button>
+        </div>
+    </div>
+
+    <script>
+        const TOTAL_QUESTIONS = 15;
+
+        const verbs = [
+            { base: 'burn', v2: 'burnt / burned', v3: 'burnt / burned', translation: 'жечь, гореть' },
+            { base: 'burst', v2: 'burst', v3: 'burst', translation: 'взрывать(ся)' },
+            { base: 'buy', v2: 'bought', v3: 'bought', translation: 'покупать' },
+            { base: 'can', v2: 'could', v3: 'been able to', translation: 'мочь; уметь' },
+            { base: 'catch', v2: 'caught', v3: 'caught', translation: 'ловить' },
+            { base: 'choose', v2: 'chose', v3: 'chosen', translation: 'выбирать' },
+            { base: 'come', v2: 'came', v3: 'come', translation: 'приходить' },
+            { base: 'cost', v2: 'cost', v3: 'cost', translation: 'стоить' },
+            { base: 'cut', v2: 'cut', v3: 'cut', translation: 'резать' },
+            { base: 'deal', v2: 'dealt', v3: 'dealt', translation: 'иметь дело' }
+        ];
+
+        const achievements = [
+            { streak: 3, emoji: '🥉', title: 'Бронзовая серия!', desc: '3 правильных ответа подряд' },
+            { streak: 5, emoji: '🥈', title: 'Серебряная серия!', desc: '5 правильных ответов подряд' },
+            { streak: 10, emoji: '🥇', title: 'Золотая серия!', desc: '10 правильных ответов подряд' },
+            { streak: 15, emoji: '🏆', title: 'Идеальная игра!', desc: 'Все 15 ответов верны!' }
+        ];
+
+        let currentMode = 'both';
+        let currentQuestionIndex = 0;
+        let scoreFirstTry = 0;
+        let questions = [];
+        let currentVerb = null;
+        let currentForm = null;
+        let correctAnswer = '';
+        let firstAttempt = true;
+        let dotStates = [];
+        let mistakes = [];
+        let currentStreak = 0;
+        let bestStreak = 0;
+        let earnedAchievements = [];
+
+        const modeLabels = {
+            'v2': '🍊 Режим: Только V2',
+            'v3': '🌸 Режим: Только V3',
+            'both': '🌿 Режим: V2 и V3',
+            'translate': '🦋 Режим: Перевод → форма'
+        };
+
+        function shuffle(array) {
+            const newArray = [...array];
+            for (let i = newArray.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [newArray[i], newArray[j]] = [newArray[j], newArray[i]];
+            }
+            return newArray;
+        }
+
+        function generateQuestionPool(mode) {
+            const pool = [];
+            if (mode === 'v2') {
+                verbs.forEach(verb => pool.push({ verb, form: 'v2' }));
+            } else if (mode === 'v3') {
+                verbs.forEach(verb => pool.push({ verb, form: 'v3' }));
+            } else if (mode === 'both' || mode === 'translate') {
+                verbs.forEach(verb => {
+                    pool.push({ verb, form: 'v2' });
+                    pool.push({ verb, form: 'v3' });
+                });
+            }
+            return pool;
+        }
+
+        function buildQuestions(mode) {
+            const pool = generateQuestionPool(mode);
+            let result = shuffle(pool);
+
+            if (result.length >= TOTAL_QUESTIONS) {
+                return result.slice(0, TOTAL_QUESTIONS);
+            }
+
+            const extra = [];
+            while (result.length + extra.length < TOTAL_QUESTIONS) {
+                const randomItem = pool[Math.floor(Math.random() * pool.length)];
+                extra.push({ ...randomItem });
+            }
+            return shuffle([...result, ...extra]);
+        }
+
+        function getWrongAnswers(correctForm, formType) {
+            const pool = [];
+            verbs.forEach(verb => {
+                const formValue = verb[formType];
+                if (formValue !== correctForm) {
+                    pool.push(formValue);
+                }
+            });
+            return shuffle(pool).slice(0, 3);
+        }
+
+        function renderDots() {
+            const container = document.getElementById('progress-dots');
+            container.innerHTML = '';
+            dotStates.forEach((state, index) => {
+                const dot = document.createElement('div');
+                dot.className = 'dot';
+                if (state === 'current') dot.classList.add('current');
+                else if (state === 'correct') dot.classList.add('correct');
+                else if (state === 'wrong') dot.classList.add('wrong');
+                dot.textContent = index + 1;
+                container.appendChild(dot);
+            });
+        }
+
+        function updateStreak(isCorrect) {
+            if (isCorrect) {
+                currentStreak++;
+                if (currentStreak > bestStreak) {
+                    bestStreak = currentStreak;
+                }
+                document.getElementById('streak-number').textContent = currentStreak;
+                document.getElementById('streak-counter').classList.add('active');
+
+                checkAchievements();
+            } else {
+                currentStreak = 0;
+                document.getElementById('streak-counter').classList.remove('active');
+            }
+        }
+
+        function checkAchievements() {
+            achievements.forEach(achievement => {
+                if (currentStreak === achievement.streak && !earnedAchievements.includes(achievement.streak)) {
+                    earnedAchievements.push(achievement.streak);
+                    showAchievement(achievement);
+                }
+            });
+        }
+
+        function showAchievement(achievement) {
+            const popup = document.getElementById('achievement-popup');
+            document.getElementById('achievement-emoji').textContent = achievement.emoji;
+            document.getElementById('achievement-title').textContent = achievement.title;
+            document.getElementById('achievement-desc').textContent = achievement.desc;
+            
+            popup.classList.add('show');
+            playAchievementSound();
+
+            setTimeout(() => {
+                popup.classList.remove('show');
+            }, 2500);
+        }
+
+        function createQuestion() {
+            const questionData = questions[currentQuestionIndex];
+            currentVerb = questionData.verb;
+            currentForm = questionData.form;
+            firstAttempt = true;
+
+            dotStates[currentQuestionIndex] = 'current';
+            renderDots();
+
+            const questionContainer = document.getElementById('question');
+            
+            if (currentMode === 'translate') {
+                const formName = currentForm === 'v2' ? 'вторая форма (V2)' : 'третья форма (V3)';
+                questionContainer.innerHTML = `
+                    <div>Какая ${formName} глагола "<strong>${currentVerb.translation}</strong>"?</div>
+                `;
+            } else {
+                const formName = currentForm === 'v2' ? 'вторая форма (V2)' : 'третья форма (V3)';
+                questionContainer.innerHTML = `
+                    <div>Какая ${formName} глагола "<strong>${currentVerb.base}</strong>"?</div>
+                    <div class="translation">(${currentVerb.translation})</div>
+                `;
+            }
+
+            correctAnswer = currentVerb[currentForm];
+            const wrongAnswers = getWrongAnswers(correctAnswer, currentForm);
+            const allAnswers = shuffle([correctAnswer, ...wrongAnswers]);
+
+            const answersContainer = document.getElementById('answers');
+            answersContainer.innerHTML = '';
+
+            allAnswers.forEach(answer => {
+                const btn = document.createElement('button');
+                btn.className = 'answer-btn';
+                btn.textContent = answer;
+                btn.onclick = () => checkAnswer(answer, btn);
+                answersContainer.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(answer, btn) {
+            const feedback = document.getElementById('feedback');
+            const buttons = document.querySelectorAll('.answer-btn');
+
+            if (answer === correctAnswer) {
+                playCorrectSound();
+                buttons.forEach(b => b.disabled = true);
+                
+                if (firstAttempt) {
+                    scoreFirstTry++;
+                    feedback.innerHTML = '<span class="correct">✓ Correct!</span>';
+                    dotStates[currentQuestionIndex] = 'correct';
+                    updateStreak(true);
+                } else {
+                    feedback.innerHTML = '<span class="correct">✓ OK!</span>';
+                }
+
+                renderDots();
+
+                setTimeout(() => {
+                    feedback.innerHTML = '';
+                    currentQuestionIndex++;
+
+                    if (currentQuestionIndex < TOTAL_QUESTIONS) {
+                        createQuestion();
+                    } else {
+                        showFinalScreen();
+                    }
+                }, 1200);
+            } else {
+                playIncorrectSound();
+                if (firstAttempt) {
+                    mistakes.push({
+                        verb: currentVerb,
+                        form: currentForm
+                    });
+                    updateStreak(false);
+                }
+                firstAttempt = false;
+                feedback.innerHTML = '<span class="incorrect">✗ Try again!</span>';
+                btn.disabled = true;
+                if (dotStates[currentQuestionIndex] === 'current') {
+                    dotStates[currentQuestionIndex] = 'wrong';
+                    renderDots();
+                }
+
+                setTimeout(() => {
+                    feedback.innerHTML = '';
+                }, 1500);
+            }
+        }
+
+        function renderAchievements() {
+            const container = document.getElementById('achievements-container');
+            container.innerHTML = '';
+
+            if (earnedAchievements.length === 0) {
+                return;
+            }
+
+            let html = `
+                <div class="achievements-block">
+                    <div class="achievements-title">🏅 Полученные достижения:</div>
+            `;
+
+            earnedAchievements.forEach(streak => {
+                const achievement = achievements.find(a => a.streak === streak);
+                html += `
+                    <div class="achievement-badge">
+                        <span class="badge-emoji">${achievement.emoji}</span>
+                        <span class="badge-text">${achievement.title}</span>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function renderMistakes() {
+            const container = document.getElementById('mistakes-container');
+            container.innerHTML = '';
+
+            if (mistakes.length === 0) {
+                container.innerHTML = `
+                    <div class="no-mistakes">
+                        <div style="font-size: 3em; margin-bottom: 10px;">🎉</div>
+                        <div class="no-mistakes-text">Отлично! Все ответы верны с первого раза!</div>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="mistakes-block">
+                    <div class="mistakes-title">📝 Разбор ошибок — повтори эти глаголы!</div>
+            `;
+
+            mistakes.forEach(m => {
+                const formName = m.form === 'v2' ? 'V2' : 'V3';
+                const correctForm = m.verb[m.form];
+                html += `
+                    <div class="mistake-card">
+                        <div class="mistake-verb">${m.verb.base} — ${m.verb.v2} — ${m.verb.v3}</div>
+                        <div class="mistake-translation">${m.verb.translation}</div>
+                        <div class="mistake-forms">
+                            Правильный ответ для <strong>${formName}</strong>: 
+                            <span class="correct-form">${correctForm}</span>
+                        </div>
+                    </div>
+                `;
+            });
+
+            html += `</div>`;
+            container.innerHTML = html;
+        }
+
+        function showFinalScreen() {
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('final-screen').style.display = 'block';
+            document.getElementById('streak-counter').classList.remove('active');
+
+            const percent = Math.round((scoreFirstTry / TOTAL_QUESTIONS) * 100);
+
+            document.getElementById('first-try-count').textContent = `${scoreFirstTry} из ${TOTAL_QUESTIONS}`;
+            document.getElementById('final-percent').textContent = `${percent}%`;
+            document.getElementById('best-streak').textContent = bestStreak;
+
+            const emoji = document.getElementById('final-emoji');
+            if (percent === 100) {
+                emoji.textContent = '🏆';
+            } else if (percent >= 80) {
+                emoji.textContent = '🌟';
+            } else if (percent >= 60) {
+                emoji.textContent = '👍';
+            } else if (percent >= 40) {
+                emoji.textContent = '📚';
+            } else {
+                emoji.textContent = '💪';
+            }
+
+            renderAchievements();
+            renderMistakes();
+        }
+
+        function startGame(mode) {
+            currentMode = mode;
+            currentQuestionIndex = 0;
+            scoreFirstTry = 0;
+            mistakes = [];
+            currentStreak = 0;
+            bestStreak = 0;
+            earnedAchievements = [];
+
+            questions = buildQuestions(mode);
+
+            dotStates = new Array(TOTAL_QUESTIONS).fill('pending');
+
+            document.getElementById('mode-screen').classList.add('hidden');
+            document.getElementById('final-screen').style.display = 'none';
+            document.getElementById('quiz-screen').classList.remove('hidden');
+            document.getElementById('current-mode-label').textContent = modeLabels[mode];
+            document.getElementById('feedback').innerHTML = '';
+
+            renderDots();
+            createQuestion();
+        }
+
+        function backToMenu() {
+            document.getElementById('final-screen').style.display = 'none';
+            document.getElementById('quiz-screen').classList.add('hidden');
+            document.getElementById('mode-screen').classList.remove('hidden');
+        }
+
+        function playCorrectSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const notes = [523.25, 659.25, 783.99];
+                notes.forEach((freq, i) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    oscillator.frequency.value = freq;
+                    oscillator.type = 'sine';
+                    const startTime = audioContext.currentTime + i * 0.08;
+                    gainNode.gain.setValueAtTime(0.3, startTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.25);
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + 0.25);
+                });
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function playIncorrectSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(150, audioContext.currentTime + 0.3);
+                oscillator.type = 'sawtooth';
+                gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.3);
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.3);
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+
+        function playAchievementSound() {
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                const notes = [523.25, 659.25, 783.99, 1046.50];
+                notes.forEach((freq, i) => {
+                    const oscillator = audioContext.createOscillator();
+                    const gainNode = audioContext.createGain();
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioContext.destination);
+                    oscillator.frequency.value = freq;
+                    oscillator.type = 'sine';
+                    const startTime = audioContext.currentTime + i * 0.12;
+                    gainNode.gain.setValueAtTime(0.35, startTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+                    oscillator.start(startTime);
+                    oscillator.stop(startTime + 0.3);
+                });
+            } catch (e) {
+                console.log('Audio error:', e);
+            }
+        }
+    </script>
+</body>
+</html>
